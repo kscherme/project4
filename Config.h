@@ -14,14 +14,15 @@ using namespace std;
 class Config {
 	public:
 		Config( string configFile );
-		/*
-		PERIOD_FETCH=180;
-		NUM_FETCH=1;
-		NUM_PARSE=1;
-		SEARCH_FILE=Search.txt;
-		SITE_FILE=Sites.txt;
-		*/
+		
+		int PERIOD_FETCH;
+		int NUM_FETCH;
+		int NUM_PARSE;
+		string SEARCH_FILE;
+		string SITE_FILE;
+		
 	private:
+
 };
 
 #endif
