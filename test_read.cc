@@ -21,7 +21,7 @@ struct MemoryStruct {
 };
 
 // Function Prototypes
-char* getSite();
+char* getSite(const char*);
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
 
@@ -38,15 +38,15 @@ int main() {
 	Parse psites(config.SITE_FILE, config.NUM_PARSE);
 	vector<string> sites = psites.getData();
 
-	//char* site = strdup(sites.front().c_str());
-	char* data = getSite();
+	const char* c = sites.front().c_str();
+	char* data = getSite(c);
 	cout << data << endl;
 
 	return 0;
 
 }
 
-char* getSite() {
+char* getSite(const char* site) {
 
 	CURL *curl_handle;
 	CURLcode res;
@@ -62,7 +62,7 @@ char* getSite() {
 	curl_handle = curl_easy_init();
 
 	/* specify URL to get */ 
-	curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.nd.edu/");
+	curl_easy_setopt(curl_handle, CURLOPT_URL, site);
 
 	/* send all data to this function  */ 
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -79,10 +79,10 @@ char* getSite() {
 
 	/* check for errors */ 
 	if(res != CURLE_OK) {
-	fprintf(stderr, "curl_easy_perform() failed: %s\n",
-	        curl_easy_strerror(res));
+		fprintf(stderr, "curl_easy_perform() failed: %s\n",
+	    curl_easy_strerror(res));
 	}
-	else {
+	//else {
 	/*
 	 * Now, our chunk.memory points to a memory block that is chunk.size
 	 * bytes big and contains the remote file.
@@ -90,8 +90,8 @@ char* getSite() {
 	 * Do something nice with it!
 	 */ 
 
-	printf("%lu bytes retrieved\n", (long)chunk.size);
-	}
+	//printf("%lu bytes retrieved\n", (long)chunk.size);
+	//}
 
 	char* data = chunk.memory;
 
@@ -113,9 +113,9 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 	mem->memory = (char*)(realloc(mem->memory, mem->size + realsize + 1));
 	if(mem->memory == NULL) {
-	/* out of memory! */ 
-	printf("not enough memory (realloc returned NULL)\n");
-	return 0;
+		/* out of memory! */ 
+		printf("not enough memory (realloc returned NULL)\n");
+		return 0;
 	}
 
 	memcpy(&(mem->memory[mem->size]), contents, realsize);
