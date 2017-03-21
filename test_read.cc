@@ -21,7 +21,7 @@ struct MemoryStruct {
 };
 
 // Function Prototypes
-int getSite();
+char* getSite();
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
 
@@ -39,20 +39,21 @@ int main() {
 	vector<string> sites = psites.getData();
 
 	//char* site = strdup(sites.front().c_str());
-	getSite();
+	char* data = getSite();
+	cout << data << endl;
 
 	return 0;
 
 }
 
-int getSite() {
+char* getSite() {
 
 	CURL *curl_handle;
 	CURLcode res;
 
 	struct MemoryStruct chunk;
 
-	chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */ 
+	chunk.memory = (char*)(malloc(1));  /* will be grown as needed by the realloc above */ 
 	chunk.size = 0;    /* no data at this point */ 
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -61,7 +62,7 @@ int getSite() {
 	curl_handle = curl_easy_init();
 
 	/* specify URL to get */ 
-	curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.nd.edu");
+	curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.nd.edu/");
 
 	/* send all data to this function  */ 
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -92,6 +93,8 @@ int getSite() {
 	printf("%lu bytes retrieved\n", (long)chunk.size);
 	}
 
+	char* data = chunk.memory;
+
 	/* cleanup curl stuff */ 
 	curl_easy_cleanup(curl_handle);
 
@@ -100,7 +103,7 @@ int getSite() {
 	/* we're done with libcurl, so clean it up */ 
 	curl_global_cleanup();
 
-	return 0;
+	return data;
 
 }
 
@@ -108,7 +111,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 	size_t realsize = size * nmemb;
 	struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-	mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+	mem->memory = (char*)(realloc(mem->memory, mem->size + realsize + 1));
 	if(mem->memory == NULL) {
 	/* out of memory! */ 
 	printf("not enough memory (realloc returned NULL)\n");
