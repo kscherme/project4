@@ -31,8 +31,10 @@ Node Queue::pop() {
 	pthread_mutex_lock( &queue_mutex );
 
 	// Check if empty
-	while (data.empty()) {
+	while (isEmpty()) {
+		cout << "data was empty/before..." << endl;
 		pthread_cond_wait( &queue_cond, &queue_mutex );
+		cout << "data was empty..." << endl;
 	}
 
 	// do normal pop
@@ -44,13 +46,13 @@ Node Queue::pop() {
 
 }
 
-int Queue::empty() {
+int Queue::isEmpty() {
 
 	int value;
 
 	cout << "in empty..." << endl;
-	pthread_mutex_lock( &queue_mutex );
-	cout << "acquired lock..." << endl;
+	//pthread_mutex_lock( &queue_mutex );
+	//cout << "acquired lock..." << endl;
 
 	if (data.empty()) {
 		value = 1;
@@ -59,7 +61,7 @@ int Queue::empty() {
 		value = 0;
 	}
 
-	pthread_mutex_unlock( &queue_mutex );
+	//pthread_mutex_unlock( &queue_mutex );
 	
 	return value;
 
