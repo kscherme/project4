@@ -13,6 +13,7 @@
 #include "Config.h"
 #include "Parse.h"
 #include "CurlSite.h"
+#include "Queue.h"
 
 using namespace std;
 
