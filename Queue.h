@@ -9,14 +9,18 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <pthread.h>
 
 using namespace std;
 
 class Queue {
 	public:
 		Queue();
-		~Queue();
+		void fill( vector<string> );
+		string pop();
+		void printQueue();
 		list<string> data;
+		pthread_mutex_t queue_mutex;
 
 };
 

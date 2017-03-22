@@ -30,27 +30,29 @@ int main() {
 	Parse psites(config.SITE_FILE, config.NUM_PARSE);
 	vector<string> sites = psites.getData();
 
-	// Make output file
+	// Make initial output file
 	int fileCount = 1;
 	ofstream outputFile;
 	string filename = to_string(fileCount) + ".csv";
 	outputFile.open (filename);
 
+	// fill queue with sites to search
+	Queue fetchQueue;
+	fetchQueue.fill(sites);
 
 	// Get website contents
 	const char* c = sites.front().c_str();
 	CurlSite curl;
-	string data1 = curl.getSite(c);
-	//string data1 = string(data);
-	cout << data1 << endl;
+	string data = curl.getSite(c);
+	cout << data << endl;
 
 	// Perform keyword search on data
 	for (vector<string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
 		int count = 0;
-		size_t nPos = data1.find(*it, 0);
+		size_t nPos = data.find(*it, 0);
 		while(nPos != string::npos) {
 			count++;
-			nPos = data1.find(*it, nPos + 1);
+			nPos = data.find(*it, nPos + 1);
 		}
 		cout << *it << ": " << count << endl;
 		outputFile << *it << ": " << count << endl;
