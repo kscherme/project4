@@ -21,6 +21,7 @@ void Queue::fill( vector<string> v ) {
 		siteNode.siteName = *it;
 		data.push_back(siteNode);
 	}
+	pthread_cond_broadcast( &queue_cond );
 	pthread_mutex_unlock( &queue_mutex );
 
 }
@@ -28,10 +29,36 @@ void Queue::fill( vector<string> v ) {
 Node Queue::pop() {
 
 	pthread_mutex_lock( &queue_mutex );
+
+	// Check if empty
+	while (data.empty()) {
+		pthread_cond_wait( &queue_cond, &queue_mutex );
+	}
+	
+	// do normal pop
 	Node value = data.front();
 	data.pop_front();
-	pthread_mutex_unlock( &queue_mutex );
+
+	pthread_mutex_lock( &queue_mutex );
 	return value;
+
+}
+
+bool Queue::empty() {
+
+	pthread_mutex_lock( &queue_mutex );
+	bool value = data.empty();
+	pthread_mutex_lock( &queue_mutex );
+	return value;
+
+}
+
+void Queue::push( Node newNode ) {
+
+	pthread_mutex_lock( &queue_mutex );
+	data.push_back(newNode);
+	pthread_cond_broadcast( &queue_cond );
+	pthread_mutex_lock( &queue_mutex );
 
 }
 

@@ -11,34 +11,39 @@
 #include <curl/curl.h>
 #include <signal.h>
 #include <fstream>
+#include <pthread.h>
 #include "Config.h"
 #include "Parse.h"
 #include "CurlSite.h"
 #include "Queue.h"
+#include "Node.h"
 
 using namespace std;
 
 // Global Variables
 Queue fetchQueue;
+Queue parseQueue;
 Config config("config.txt");
 int FILECOUNT = 0;
+vector<string> keywords;
+vector<string> sites;
+bool keepRunning = true;
 
 // Functions
-void data_fetch();
-
+void createFetchThreads();
+void alarmHandler();
+void* fetchThreadHandler( void* threadID );
+void exitHandler();
 
 int main() {
 
-	// Configure parameters
-	//Config config("config.txt");
-
 	// Parse search file
 	Parse search(config.SEARCH_FILE, config.NUM_PARSE);
-	vector<string> keywords = search.getData();
+	keywords = search.getData();
 
 	// Parse sites file
 	Parse psites(config.SITE_FILE, config.NUM_PARSE);
-	vector<string> sites = psites.getData();
+	sites = psites.getData();
 
 	// Fill fetch queue for the first run
 	fetchQueue.fill(sites);
@@ -47,9 +52,13 @@ int main() {
 	//signal(SIGALRM, wake_up_threads);
 	//alarm(180)
 
-	// Perform data fetch
-	data_fetch();
+	// Set exit signal
+	// signal(SIGINT, exitHandler);
 
+	// Perform data fetch
+	createFetchThreads();
+
+	/*
 	// Perform keyword search on data
 	for (vector<string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
 		int count = 0;
@@ -62,8 +71,7 @@ int main() {
 		outputFile << *it << ": " << count << endl;
 
 	}
-
-	outputFile.close();
+	*/
 
 	fetchQueue.printQueue();
 
@@ -71,27 +79,74 @@ int main() {
 
 }
 
-void data_fetch() {
+void alarmHandler() {
 
 	// Make output file
 	FILECOUNT++;
 	ofstream outputFile;
-	string filename = to_string(fileCount) + ".csv";
+	string filename = to_string(FILECOUNT) + ".csv";
 	outputFile.open (filename);
 
+	// Refill queue
+	fetchQueue.fill(sites);
+
+	// Reset alarm
+	// alarm(180)
+
+	// Close file
+	outputFile.close();
+
+
+}
+
+void createFetchThreads() {
+
 	// Create threads
-	pthread_t *threads = malloc( sizeof(pthread_t) * config.NUM_FETCH)
+	pthread_t* threads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
 	int rc;
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
-		rc = pthread_create(&threads[i], NULL, curl_site, args);
+		
+		rc = pthread_create(&threads[i], NULL, fetchThreadHandler, (void*) i);
+		if (rc) {
+        	cout << "Error: unable to create thread: " << rc << endl;
+        	exit(1);
+      	}
+
 	}
 
-	// Get website contents
-	const char* c = sites.front().c_str();
-	CurlSite curl;
-	string data = curl.getSite(c);
-	cout << data << endl;	
+}
 
+void* fetchThreadHandler( void* threadID ) {
+
+	// create curl object
+	CurlSite curl;
+
+	// while fetchQueue is not empty threads try to pop
+	while (keepRunning) {
+
+		if (!fetchQueue.empty()) {
+
+			// get website contents
+			Node newNode = fetchQueue.pop();
+			const char* c = newNode.siteName.c_str();
+			newNode.siteData = curl.getSite(c);
+
+			// push into parseQueue
+			parseQueue.push(newNode);
+
+		}
+
+	}
+
+}
+
+void exitHandler() {
+
+	// set keepRunning to false so threads will exit loop
+	keepRunning = false;
+	
+	// wait for all threads to finish
+	// pthread_join
 
 }
