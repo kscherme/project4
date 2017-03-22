@@ -58,6 +58,9 @@ int main() {
 
 	// Perform data fetch
 	createFetchThreads();
+
+	// keyword search
+	
 	while(1) {
 		sleep(1);
 	}
@@ -111,7 +114,6 @@ void createFetchThreads() {
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
 		
-		cout << "creating thread: " << i << endl;
 		rc = pthread_create(&threads[i], NULL, fetchThreadHandler, (void*) i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
@@ -130,8 +132,6 @@ void* fetchThreadHandler( void* threadID ) {
 	// while fetchQueue is not empty threads try to pop
 	while (keepRunning) {
 
-		cout << "in loop" << endl;
-
 		// get website contents
 		Node newNode = fetchQueue.pop();
 		const char* c = newNode.siteName.c_str();
@@ -139,8 +139,6 @@ void* fetchThreadHandler( void* threadID ) {
 
 		// push into parseQueue
 		parseQueue.push(newNode);
-
-		cout << "hello" << endl;
 
 	}
 

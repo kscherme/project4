@@ -39,7 +39,7 @@ Node Queue::pop() {
 	Node value = data.front();
 	data.pop_front();
 
-	pthread_mutex_lock( &queue_mutex );
+	pthread_mutex_unlock( &queue_mutex );
 	return value;
 
 }
@@ -59,7 +59,7 @@ int Queue::empty() {
 		value = 0;
 	}
 
-	pthread_mutex_lock( &queue_mutex );
+	pthread_mutex_unlock( &queue_mutex );
 	
 	return value;
 
@@ -70,7 +70,7 @@ void Queue::push( Node newNode ) {
 	pthread_mutex_lock( &queue_mutex );
 	data.push_back(newNode);
 	pthread_cond_broadcast( &queue_cond );
-	pthread_mutex_lock( &queue_mutex );
+	pthread_mutex_unlock( &queue_mutex );
 
 }
 
