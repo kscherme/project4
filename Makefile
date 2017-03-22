@@ -1,5 +1,5 @@
 CXX=		g++
-CXXFLAGS=	-g -Wall -lcurl
+CXXFLAGS=	-g -Wall -lcurl -std=gnu++11
 
 all: site-tester
 

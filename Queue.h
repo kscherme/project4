@@ -10,6 +10,7 @@
 #include <string>
 #include <list>
 #include <pthread.h>
+#include "Node.h"
 
 using namespace std;
 
@@ -17,10 +18,11 @@ class Queue {
 	public:
 		Queue();
 		void fill( vector<string> );
-		string pop();
+		Node pop();
 		void printQueue();
-		list<string> data;
-		pthread_mutex_t queue_mutex;
+		list<Node> data;
+	private:
+		pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 };
 

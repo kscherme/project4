@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <curl/curl.h>
+#include <signal.h>
 #include <fstream>
 #include "Config.h"
 #include "Parse.h"
@@ -17,10 +18,19 @@
 
 using namespace std;
 
+// Global Variables
+Queue fetchQueue;
+Config config("config.txt");
+int FILECOUNT = 0;
+
+// Functions
+void data_fetch();
+
+
 int main() {
 
 	// Configure parameters
-	Config config("config.txt");
+	//Config config("config.txt");
 
 	// Parse search file
 	Parse search(config.SEARCH_FILE, config.NUM_PARSE);
@@ -30,21 +40,15 @@ int main() {
 	Parse psites(config.SITE_FILE, config.NUM_PARSE);
 	vector<string> sites = psites.getData();
 
-	// Make initial output file
-	int fileCount = 1;
-	ofstream outputFile;
-	string filename = to_string(fileCount) + ".csv";
-	outputFile.open (filename);
-
-	// fill queue with sites to search
-	Queue fetchQueue;
+	// Fill fetch queue for the first run
 	fetchQueue.fill(sites);
 
-	// Get website contents
-	const char* c = sites.front().c_str();
-	CurlSite curl;
-	string data = curl.getSite(c);
-	cout << data << endl;
+	// Set timer
+	//signal(SIGALRM, wake_up_threads);
+	//alarm(180)
+
+	// Perform data fetch
+	data_fetch();
 
 	// Perform keyword search on data
 	for (vector<string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
@@ -61,6 +65,33 @@ int main() {
 
 	outputFile.close();
 
+	fetchQueue.printQueue();
+
 	return 0;
+
+}
+
+void data_fetch() {
+
+	// Make output file
+	FILECOUNT++;
+	ofstream outputFile;
+	string filename = to_string(fileCount) + ".csv";
+	outputFile.open (filename);
+
+	// Create threads
+	pthread_t *threads = malloc( sizeof(pthread_t) * config.NUM_FETCH)
+	int rc;
+
+	for( int i = 0; i < config.NUM_FETCH; i++) {
+		rc = pthread_create(&threads[i], NULL, curl_site, args);
+	}
+
+	// Get website contents
+	const char* c = sites.front().c_str();
+	CurlSite curl;
+	string data = curl.getSite(c);
+	cout << data << endl;	
+
 
 }

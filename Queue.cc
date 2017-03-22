@@ -7,6 +7,7 @@
 #include <vector>
 #include <pthread.h>
 #include "Queue.h"
+#include "Node.h"
 
 using namespace std;
 
@@ -16,16 +17,18 @@ void Queue::fill( vector<string> v ) {
 
 	pthread_mutex_lock( &queue_mutex );
 	for (vector<string>::iterator it=v.begin(); it != v.end(); ++it) {
-		data.push_back(*it);
+		Node siteNode;
+		siteNode.siteName = *it;
+		data.push_back(siteNode);
 	}
 	pthread_mutex_unlock( &queue_mutex );
 
 }
 
-string Queue::pop() {
+Node Queue::pop() {
 
 	pthread_mutex_lock( &queue_mutex );
-	string value = data.front();
+	Node value = data.front();
 	data.pop_front();
 	pthread_mutex_unlock( &queue_mutex );
 	return value;
@@ -34,8 +37,8 @@ string Queue::pop() {
 
 void Queue::printQueue() {
 
-	for (list<string>::iterator it=data.begin(); it != data.end(); ++it) {
-		cout << *it << endl;
+	for (list<Node>::iterator it=data.begin(); it != data.end(); ++it) {
+		cout << (*it).siteName << endl;
 	}
 
 }
