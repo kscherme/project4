@@ -40,8 +40,8 @@ int main() {
 	// Get website contents
 	const char* c = sites.front().c_str();
 	CurlSite curl;
-	const char* data = curl.getSite(c);
-	string data1 = string(data);
+	string data1 = curl.getSite(c);
+	//string data1 = string(data);
 	cout << data1 << endl;
 
 	// Perform keyword search on data

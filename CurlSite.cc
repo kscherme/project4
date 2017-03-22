@@ -19,7 +19,7 @@ struct MemoryStruct {
 
 CurlSite::CurlSite() {}
 
-char* CurlSite::getSite( const char* site ) {
+string CurlSite::getSite( const char* site ) {
 
 	CURL *curl_handle;
 	CURLcode res;
@@ -56,7 +56,7 @@ char* CurlSite::getSite( const char* site ) {
 	    curl_easy_strerror(res));
 	}
 
-	char* data = chunk.memory;
+	string data = chunk.memory;
 
 	/* cleanup curl stuff */ 
 	curl_easy_cleanup(curl_handle);
