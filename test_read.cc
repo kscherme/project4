@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <fstream>
 #include <pthread.h>
+#include <unistd.h>
 #include "Config.h"
 #include "Parse.h"
 #include "CurlSite.h"
@@ -57,6 +58,9 @@ int main() {
 
 	// Perform data fetch
 	createFetchThreads();
+	while(1) {
+		sleep(1);
+	}
 
 	/*
 	// Perform keyword search on data
@@ -128,18 +132,13 @@ void* fetchThreadHandler( void* threadID ) {
 
 		cout << "in loop" << endl;
 
-		if (!fetchQueue.empty()) {
+		// get website contents
+		Node newNode = fetchQueue.pop();
+		const char* c = newNode.siteName.c_str();
+		newNode.siteData = curl.getSite(c);
 
-			cout << "in if" << endl;
-			// get website contents
-			Node newNode = fetchQueue.pop();
-			const char* c = newNode.siteName.c_str();
-			newNode.siteData = curl.getSite(c);
-
-			// push into parseQueue
-			parseQueue.push(newNode);
-
-		}
+		// push into parseQueue
+		parseQueue.push(newNode);
 
 		cout << "hello" << endl;
 

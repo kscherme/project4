@@ -58,11 +58,8 @@ int Queue::empty() {
 	else {
 		value = 0;
 	}
-	cout << "past empty" << endl;
 
-	cout << "unlocking..." << endl;
 	pthread_mutex_lock( &queue_mutex );
-	cout << "unlocking..." << endl;
 	
 	return value;
 
