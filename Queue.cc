@@ -34,7 +34,7 @@ Node Queue::pop() {
 	while (data.empty()) {
 		pthread_cond_wait( &queue_cond, &queue_mutex );
 	}
-	
+
 	// do normal pop
 	Node value = data.front();
 	data.pop_front();
@@ -44,11 +44,26 @@ Node Queue::pop() {
 
 }
 
-bool Queue::empty() {
+int Queue::empty() {
 
+	int value;
+
+	cout << "in empty..." << endl;
 	pthread_mutex_lock( &queue_mutex );
-	bool value = data.empty();
+	cout << "acquired lock..." << endl;
+
+	if (data.empty()) {
+		value = 1;
+	}
+	else {
+		value = 0;
+	}
+	cout << "past empty" << endl;
+
+	cout << "unlocking..." << endl;
 	pthread_mutex_lock( &queue_mutex );
+	cout << "unlocking..." << endl;
+	
 	return value;
 
 }

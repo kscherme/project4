@@ -19,7 +19,7 @@ class Queue {
 		Queue();
 		void fill( vector<string> );
 		Node pop();
-		bool empty();
+		int empty();
 		void push( Node );
 		void printQueue();
 		list<Node> data;

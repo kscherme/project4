@@ -27,7 +27,7 @@ Config config("config.txt");
 int FILECOUNT = 0;
 vector<string> keywords;
 vector<string> sites;
-bool keepRunning = true;
+int keepRunning = 1;
 
 // Functions
 void createFetchThreads();
@@ -73,7 +73,7 @@ int main() {
 	}
 	*/
 
-	fetchQueue.printQueue();
+	//fetchQueue.printQueue();
 
 	return 0;
 
@@ -107,6 +107,7 @@ void createFetchThreads() {
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
 		
+		cout << "creating thread: " << i << endl;
 		rc = pthread_create(&threads[i], NULL, fetchThreadHandler, (void*) i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
@@ -125,8 +126,11 @@ void* fetchThreadHandler( void* threadID ) {
 	// while fetchQueue is not empty threads try to pop
 	while (keepRunning) {
 
+		cout << "in loop" << endl;
+
 		if (!fetchQueue.empty()) {
 
+			cout << "in if" << endl;
 			// get website contents
 			Node newNode = fetchQueue.pop();
 			const char* c = newNode.siteName.c_str();
@@ -137,15 +141,18 @@ void* fetchThreadHandler( void* threadID ) {
 
 		}
 
+		cout << "hello" << endl;
+
 	}
 
 }
 
 void exitHandler() {
 
+	cout << "Exit Handler called..." << endl;
 	// set keepRunning to false so threads will exit loop
-	keepRunning = false;
-	
+	keepRunning = 0;
+
 	// wait for all threads to finish
 	// pthread_join
 
