@@ -1,6 +1,6 @@
 /*	Parse.h
 
-	This class wil parse the search.txt and sites.txt files.
+	This class will parse the search.txt and sites.txt files.
 */
 
 #ifndef PARSE_H_
