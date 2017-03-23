@@ -226,5 +226,9 @@ void exitHandler( int sig ) {
 		pthread_join(fetchthreads[tid], NULL);
 	}
 
+	// deallocate memory for threads
+	delete [] parsethreads;
+	delete [] fetchthreads;
+
 
 }
