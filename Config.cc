@@ -9,19 +9,20 @@
 #include <list>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 #include "Config.h"
 
 using namespace std;
 
 Config::Config(string configFile) {
 
-//void Config::setParams( string configFile ) {
-
 	PERIOD_FETCH=180;
 	NUM_FETCH=1;
 	NUM_PARSE=1;
 	SEARCH_FILE="search.txt";
 	SITE_FILE="sites.txt";
+
+	struct stat buf;
 
 	ifstream infile(configFile);
 	if(!infile) {
@@ -40,9 +41,6 @@ Config::Config(string configFile) {
 		getline(s, param, '=');
 		getline(s, value, '=');
 
-		// cout << param << endl;
-		// cout << value << endl;
-
 		if ((param).compare("PERIOD_FETCH") == 0) {
 
 			PERIOD_FETCH = stoi(value);
@@ -50,24 +48,40 @@ Config::Config(string configFile) {
 		}
 		else if((param).compare("NUM_FETCH") == 0) {
 
-			NUM_FETCH = stoi(value);
+			if ((stoi(value) > 0) && (stoi(value) < 7)) { 
+				NUM_FETCH = stoi(value);
+			}
 
 		}
 		else if((param).compare("NUM_PARSE") == 0) {
 
-			NUM_PARSE = stoi(value);
+			if ((stoi(value)>0) && (stoi(value)<7)) {
+				NUM_PARSE = stoi(value);
+			}
 
 		}	
 		else if((param).compare("SEARCH_FILE") == 0) {
 
-			SEARCH_FILE = value;
-			//cout << "SEARCH_FILE= " << value << endl;
+			if(stat(value.c_str(), &buf) == 0) {
+				SEARCH_FILE = value;			
+			} 
+			else {
+				cout << "error: SEARCH_FILE does not exist" << endl;
+				exit(1);
+			}
+
 
 		}	
 		else if((param).compare("SITE_FILE") == 0) {
 
-			SITE_FILE = value;
-			//cout << "SITE_FILE= " << value << endl;
+			if(stat(value.c_str(), &buf) == 0) {
+				SITE_FILE = value;
+			}
+			else {
+				cout << "error: SITE_FILE does not exist" << endl;
+				exit(1);
+			}
+		
 		}
 
 	}

@@ -4,6 +4,7 @@
 */
 
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -13,6 +14,7 @@
 #include <fstream>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 #include "Config.h"
 #include "Parse.h"
 #include "CurlSite.h"
@@ -30,7 +32,10 @@ vector<string> keywords;
 vector<string> sites;
 vector<string> output;
 int keepRunning = 1;
+pthread_t* parsethreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_PARSE);
+pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
 pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
+string LOCALTIME;
 
 // Functions
 void createFetchThreads();
@@ -38,11 +43,9 @@ void createParseThreads();
 void alarmHandler(int);
 void* fetchThreadHandler( void* threadID );
 void* parseThreadHandler( void* threadID );
-void exitHandler();
+void exitHandler(int);
 
 int main() {
-
-	//config.setParams("config.txt");
 
 	// Parse search file
 	Parse search(config.SEARCH_FILE, config.NUM_PARSE);
@@ -54,30 +57,29 @@ int main() {
 
 	// Fill fetch queue for the first run
 	fetchQueue.fill(sites);
-	//fetchQueue.printQueue();
 
-	// Set timer
+	// Set signals
 	signal(SIGALRM, alarmHandler);
+	signal(SIGINT, exitHandler);
+	signal(SIGHUP, exitHandler);
 
-	// Set exit signal
-	// signal(SIGINT, exitHandler);
-
-	// Perform data fetch
+	// create Threads
 	createFetchThreads();
-	//parseQueue.printQueue();
-
-	// Perform keyword parse
 	createParseThreads();
 
-	alarm(1);
+	// set off initial alarm for first run
+	alarm(10);
 
-	// keyword search
-	
-	while(1) {
+	// Get local time
+	time_t theTime = time(NULL);
+	struct tm* timeinfo = localtime(&theTime);
+	LOCALTIME = asctime(timeinfo);
+	LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
+
+	// Main Loop	
+	while(keepRunning) {
 		sleep(1);
 	}
-
-	//fetchQueue.printQueue();
 
 	return 0;
 
@@ -94,34 +96,38 @@ void alarmHandler( int sig) {
 	// Refill fetch queue
 	fetchQueue.fill(sites);
 
-	// Reset alarm
-	signal(SIGALRM, alarmHandler);
-	alarm(10);
-
+	// Writes to output file
+	outputFile << "Time,Phrase,Site,Count" << endl;
 	for ( vector<string>::iterator it = output.begin(); it != output.end(); ++it ) {
+		outputFile << LOCALTIME << ",";
 		outputFile << *it << endl;
 	}
 
-
-
 	// Close file
 	outputFile.close();
+
+	// Clear output vector for next run
 	output.clear();
 
+	// Reset alarm, get local time
+	signal(SIGALRM, alarmHandler);
+	alarm(10);
+	time_t theTime = time(NULL);
+	struct tm* timeinfo = localtime(&theTime);
+	LOCALTIME = asctime(timeinfo); 
+	LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
 
 }
 
 void createFetchThreads() {
 
 	// Create threads
-	pthread_t* threads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
+	pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
 	int rc;
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
-
-		cout << "thread created..." << endl;
 		
-		rc = pthread_create(&threads[i], NULL, fetchThreadHandler, (void*) i);
+		rc = pthread_create(&fetchthreads[i], NULL, fetchThreadHandler, (void*) i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
         	exit(1);
@@ -134,11 +140,10 @@ void createFetchThreads() {
 void* fetchThreadHandler( void* threadID ) {
 
 	// create curl object
-	//CurlSite curl;
+	CurlSite curl;
 
 	// while fetchQueue is not empty threads try to pop
 	while (keepRunning) {
-		CurlSite curl;
 
 		// get website contents
 		Node newNode = fetchQueue.pop();
@@ -147,10 +152,8 @@ void* fetchThreadHandler( void* threadID ) {
 
 		// push into parseQueue
 		parseQueue.push(newNode);
-		//cout << "node pushed into parseQueue..." << endl;
 
 	}
-
 
 }
 
@@ -184,6 +187,7 @@ void* parseThreadHandler( void* threadID ) {
 
 		// Perform keyword search on data
 		for (vector<string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
+			
 			// Set count to 0
 			int count = 0;
 
@@ -196,7 +200,8 @@ void* parseThreadHandler( void* threadID ) {
 				nPos = newNode.siteData.find(*it, nPos + 1);
 			}
 
-
+			// write to output vector
+			// lock to ensure atomic
 			pthread_mutex_lock( &output_mutex );
 			outputString = *it + "," + newNode.siteName + "," + to_string(count);
 			output.push_back(outputString);
@@ -208,13 +213,18 @@ void* parseThreadHandler( void* threadID ) {
 
 }
 
-void exitHandler() {
+void exitHandler( int sig ) {
 
-	cout << "Exit Handler called..." << endl;
 	// set keepRunning to false so threads will exit loop
 	keepRunning = 0;
 
 	// wait for all threads to finish
-	// pthread_join
+	for ( int tid=0; tid<config.NUM_PARSE; tid++) {
+		pthread_join(parsethreads[tid], NULL);
+	}
+	for ( int tid=0; tid<config.NUM_FETCH; tid++) {
+		pthread_join(fetchthreads[tid], NULL);
+	}
+
 
 }
