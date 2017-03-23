@@ -32,10 +32,11 @@ vector<string> keywords;
 vector<string> sites;
 vector<string> output;
 int keepRunning = 1;
-pthread_t* parsethreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_PARSE);
-pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
+pthread_t* fetchthreads = new pthread_t[config.NUM_FETCH];
+pthread_t* parsethreads = new pthread_t[config.NUM_PARSE];
 pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 string LOCALTIME;
+ofstream outputFile;
 
 // Functions
 void createFetchThreads();
@@ -89,7 +90,7 @@ void alarmHandler( int sig) {
 
 	// Make output file
 	FILECOUNT++;
-	ofstream outputFile;
+	//ofstream outputFile;
 	string filename = to_string(FILECOUNT) + ".csv";
 	outputFile.open (filename);
 
@@ -122,7 +123,6 @@ void alarmHandler( int sig) {
 void createFetchThreads() {
 
 	// Create threads
-	pthread_t* fetchthreads = new pthread_t[config.NUM_FETCH];
 	int rc;
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
@@ -160,7 +160,6 @@ void* fetchThreadHandler( void* threadID ) {
 void createParseThreads() {
 
 	// Create threads
-	pthread_t* parsethreads =  new pthread_t[config.NUM_PARSE];
 	int rc;
 
 	for( int i = 0; i < config.NUM_PARSE; i++) {
@@ -217,7 +216,13 @@ void exitHandler( int sig ) {
 
 	// set keepRunning to false so threads will exit loop
 	keepRunning = 0;
-
+	
+	try {
+		outputFile.close();
+	}
+	catch (int e){
+		// no file to close
+	}
 	// wait for all threads to finish
 	for ( int tid=0; tid<config.NUM_PARSE; tid++) {
 		pthread_join(parsethreads[tid], NULL);

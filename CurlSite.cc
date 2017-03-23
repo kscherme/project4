@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
+#include <cstring>
 #include <stdlib.h> 
 #include <curl/curl.h>
 #include "CurlSite.h"
