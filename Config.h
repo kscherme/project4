@@ -14,6 +14,7 @@ using namespace std;
 class Config {
 	public:
 		Config( string configFile );
+		//void setParams( string configFile );
 		
 		int PERIOD_FETCH;
 		int NUM_FETCH;

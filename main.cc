@@ -30,16 +30,19 @@ vector<string> keywords;
 vector<string> sites;
 vector<string> output;
 int keepRunning = 1;
+pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Functions
 void createFetchThreads();
 void createParseThreads();
-void alarmHandler();
+void alarmHandler(int);
 void* fetchThreadHandler( void* threadID );
 void* parseThreadHandler( void* threadID );
 void exitHandler();
 
 int main() {
+
+	//config.setParams("config.txt");
 
 	// Parse search file
 	Parse search(config.SEARCH_FILE, config.NUM_PARSE);
@@ -51,21 +54,22 @@ int main() {
 
 	// Fill fetch queue for the first run
 	fetchQueue.fill(sites);
-	fetchQueue.printQueue();
+	//fetchQueue.printQueue();
 
 	// Set timer
-	//signal(SIGALRM, wake_up_threads);
-	//alarm(180)
+	signal(SIGALRM, alarmHandler);
 
 	// Set exit signal
 	// signal(SIGINT, exitHandler);
 
 	// Perform data fetch
 	createFetchThreads();
-	parseQueue.printQueue();
+	//parseQueue.printQueue();
 
 	// Perform keyword parse
-	//createParseThreads();
+	createParseThreads();
+
+	alarm(1);
 
 	// keyword search
 	
@@ -73,28 +77,13 @@ int main() {
 		sleep(1);
 	}
 
-	/*
-	// Perform keyword search on data
-	for (vector<string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
-		int count = 0;
-		size_t nPos = data.find(*it, 0);
-		while(nPos != string::npos) {
-			count++;
-			nPos = data.find(*it, nPos + 1);
-		}
-		cout << *it << ": " << count << endl;
-		outputFile << *it << ": " << count << endl;
-
-	}
-	*/
-
 	//fetchQueue.printQueue();
 
 	return 0;
 
 }
 
-void alarmHandler() {
+void alarmHandler( int sig) {
 
 	// Make output file
 	FILECOUNT++;
@@ -106,7 +95,8 @@ void alarmHandler() {
 	fetchQueue.fill(sites);
 
 	// Reset alarm
-	// alarm(180)
+	signal(SIGALRM, alarmHandler);
+	alarm(10);
 
 	for ( vector<string>::iterator it = output.begin(); it != output.end(); ++it ) {
 		outputFile << *it << endl;
@@ -116,6 +106,7 @@ void alarmHandler() {
 
 	// Close file
 	outputFile.close();
+	output.clear();
 
 
 }
@@ -143,10 +134,11 @@ void createFetchThreads() {
 void* fetchThreadHandler( void* threadID ) {
 
 	// create curl object
-	CurlSite curl;
+	//CurlSite curl;
 
 	// while fetchQueue is not empty threads try to pop
 	while (keepRunning) {
+		CurlSite curl;
 
 		// get website contents
 		Node newNode = fetchQueue.pop();
@@ -155,11 +147,10 @@ void* fetchThreadHandler( void* threadID ) {
 
 		// push into parseQueue
 		parseQueue.push(newNode);
-		cout << "node pushed into parseQueue..." << endl;
+		//cout << "node pushed into parseQueue..." << endl;
 
 	}
 
-	cout << "hi" << endl;
 
 }
 
@@ -206,8 +197,10 @@ void* parseThreadHandler( void* threadID ) {
 			}
 
 
+			pthread_mutex_lock( &output_mutex );
 			outputString = *it + "," + newNode.siteName + "," + to_string(count);
 			output.push_back(outputString);
+			pthread_mutex_unlock( &output_mutex );
 
 		}		
 

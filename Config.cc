@@ -6,18 +6,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <fstream>
+#include <sstream>
 #include "Config.h"
 
 using namespace std;
 
-Config::Config( string configFile ) {
+Config::Config(string configFile) {
+
+//void Config::setParams( string configFile ) {
 
 	PERIOD_FETCH=180;
 	NUM_FETCH=1;
 	NUM_PARSE=1;
-	SEARCH_FILE="Search.txt";
-	SITE_FILE="Sites.txt";
+	SEARCH_FILE="search.txt";
+	SITE_FILE="sites.txt";
 
 	ifstream infile(configFile);
 	if(!infile) {
@@ -25,37 +29,45 @@ Config::Config( string configFile ) {
 		exit(1);
 	}
 
-	vector<string> tokens;
-	string param;
+	list<string> tokens;
+	string line;
 
-	while(!infile.eof()) {
-		getline(infile, param, '=');
-		tokens.push_back(param);
-		//cout << param << endl;
-	}
+	while(getline(infile, line)) {
+		string param;
+		string value;
 
-	for( vector<string>::iterator it = tokens.begin(); it != tokens.end(); ++it ) {
-		//cout << *it << endl;
-		if (*it == "PERIOD_FETCH") {
-			++it;
-			PERIOD_FETCH = stoi(*it);
-			//cout << PERIOD_FETCH << endl;
+		stringstream s(line);
+		getline(s, param, '=');
+		getline(s, value, '=');
+
+		// cout << param << endl;
+		// cout << value << endl;
+
+		if ((param).compare("PERIOD_FETCH") == 0) {
+
+			PERIOD_FETCH = stoi(value);
+
 		}
-		else if(*it == "NUM_FETCH") {
-			++it;
-			NUM_FETCH = stoi(*it);
+		else if((param).compare("NUM_FETCH") == 0) {
+
+			NUM_FETCH = stoi(value);
+
 		}
-		else if(*it == "NUM_PARSE") {
-			++it;
-			NUM_PARSE = stoi(*it);
+		else if((param).compare("NUM_PARSE") == 0) {
+
+			NUM_PARSE = stoi(value);
+
 		}	
-		else if(*it == "SEARCH_FILE") {
-			++it;
-			SEARCH_FILE = *it;
+		else if((param).compare("SEARCH_FILE") == 0) {
+
+			SEARCH_FILE = value;
+			//cout << "SEARCH_FILE= " << value << endl;
+
 		}	
-		else if(*it == "SITE_FILE") {
-			++it;
-			SITE_FILE = *it;
+		else if((param).compare("SITE_FILE") == 0) {
+
+			SITE_FILE = value;
+			//cout << "SITE_FILE= " << value << endl;
 		}
 
 	}
