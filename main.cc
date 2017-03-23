@@ -122,7 +122,7 @@ void alarmHandler( int sig) {
 void createFetchThreads() {
 
 	// Create threads
-	pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
+	pthread_t* fetchthreads = new pthread_t[config.NUM_FETCH];
 	int rc;
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
@@ -160,7 +160,7 @@ void* fetchThreadHandler( void* threadID ) {
 void createParseThreads() {
 
 	// Create threads
-	pthread_t* parsethreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_PARSE);
+	pthread_t* parsethreads =  new pthread_t[config.NUM_PARSE];
 	int rc;
 
 	for( int i = 0; i < config.NUM_PARSE; i++) {
