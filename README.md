@@ -62,3 +62,7 @@ With all the above classes included, the main function actually runs pretty simp
 
 * `ofstream outputFile`: This is the output file stream. This also needs to be global so it can be accessed by multiple functions. The alarm handler and the exit handler. 
 
+Main then starts by parsing the search file, then parsing the sites file, then it fills fetch queue for the first run. It then sets the singals for SIGALRM and SIGINT. It then creates the threads and sets off the alarm for the first time, going to the `alarmHandler` function. Then main gets local time for the output file and enters the main loop, controlled by the `keepRunning` variable. When this variable changes to 0 when ^C is called, this loop exits, the threads are collected and main returns 0.
+
+
+EOF
