@@ -60,7 +60,7 @@ int main() {
 	fetchQueue.fill(sites);
 
 	// Set signals
-	//signal(SIGALRM, alarmHandler);
+	signal(SIGALRM, alarmHandler);
 	signal(SIGINT, exitHandler);
 
 	// create Threads
@@ -69,8 +69,8 @@ int main() {
 
 	// set off initial alarm for first run
 	//alarm(10);
-	alarmHandler(0);
-	//alarm(1);
+	//alarmHandler(0);
+	alarm(1);
 
 	// Get local time
 	time_t theTime = time(NULL);
@@ -89,13 +89,13 @@ int main() {
 
 void alarmHandler( int sig) {
 
-        // Reset alarm, get local time
-        signal(SIGALRM, alarmHandler);
-      	alarm(config.PERIOD_FETCH);
-        time_t theTime = time(NULL);
-        struct tm* timeinfo = localtime(&theTime);
-        LOCALTIME = asctime(timeinfo);
-        LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
+    // Reset alarm, get local time
+    signal(SIGALRM, alarmHandler);
+  	alarm(config.PERIOD_FETCH);
+    time_t theTime = time(NULL);
+    struct tm* timeinfo = localtime(&theTime);
+    LOCALTIME = asctime(timeinfo);
+    LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
 	
 	// Make output file
 	FILECOUNT++;
