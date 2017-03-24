@@ -38,6 +38,9 @@ string CurlSite::getSite( const char* site ) {
 	/* specify URL to get */ 
 	curl_easy_setopt(curl_handle, CURLOPT_URL, site);
 
+        /* set timeout */
+	curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 15L);
+	curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 	/* send all data to this function  */ 
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
@@ -51,14 +54,17 @@ string CurlSite::getSite( const char* site ) {
 	/* get it! */ 
 	res = curl_easy_perform(curl_handle);
 
+	string data;
 	/* check for errors */ 
 	if(res != CURLE_OK) {
 		fprintf(stderr, "curl_easy_perform() failed: %s\n",
 	    curl_easy_strerror(res));
+		data = "";
 	}
+	else {
+		data = chunk.memory;
 
-	string data = chunk.memory;
-
+	}
 	/* cleanup curl stuff */ 
 	curl_easy_cleanup(curl_handle);
 

@@ -150,7 +150,9 @@ void* fetchThreadHandler( void* threadID ) {
 		newNode.siteData = curl.getSite(c);
 
 		// push into parseQueue
-		parseQueue.push(newNode);
+		if (newNode.siteData != "" ) {
+			parseQueue.push(newNode);
+		}
 
 	}
 	pthread_exit(NULL);
