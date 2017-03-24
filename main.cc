@@ -57,7 +57,7 @@ int main() {
 	sites = psites.getData();
 
 	// Fill fetch queue for the first run
-	//fetchQueue.fill(sites);
+	fetchQueue.fill(sites);
 
 	// Set signals
 	//signal(SIGALRM, alarmHandler);
@@ -68,12 +68,9 @@ int main() {
 	createParseThreads();
 
 	// set off initial alarm for first run
-<<<<<<< HEAD
 	//alarm(10);
 	alarmHandler(0);
-=======
-	alarm(1);
->>>>>>> b341bf4b22854728014e7cbceb9e169ea733a1fe
+	//alarm(1);
 
 	// Get local time
 	time_t theTime = time(NULL);
@@ -92,6 +89,14 @@ int main() {
 
 void alarmHandler( int sig) {
 
+        // Reset alarm, get local time
+        signal(SIGALRM, alarmHandler);
+      	alarm(config.PERIOD_FETCH);
+        time_t theTime = time(NULL);
+        struct tm* timeinfo = localtime(&theTime);
+        LOCALTIME = asctime(timeinfo);
+        LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
+	
 	// Make output file
 	FILECOUNT++;
 	//ofstream outputFile;
@@ -113,14 +118,6 @@ void alarmHandler( int sig) {
 
 	// Clear output vector for next run
 	output.clear();
-
-	// Reset alarm, get local time
-	signal(SIGALRM, alarmHandler);
-	alarm(config.PERIOD_FETCH);
-	time_t theTime = time(NULL);
-	struct tm* timeinfo = localtime(&theTime);
-	LOCALTIME = asctime(timeinfo); 
-	LOCALTIME.erase(remove(LOCALTIME.begin(), LOCALTIME.end(), '\n'), LOCALTIME.end());
 
 }
 
