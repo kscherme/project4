@@ -34,3 +34,31 @@ The queue class is one of the most parts of our program. It is a wrapper class t
 
 main.cc
 -------
+With all the above classes included, the main function actually runs pretty simply. It contains 13 Global Variables:
+
+* `Queue fetchQueue`: This is an object of the Queue class, which will be continually filled and emptied of sites. The fetch threads will be constantly waiting for Nodes to be put into this queue. When a Node is pushed to the queue, the queue will broadcast, wake up the sleepings threads. One of the sleeping threads will be able to pop successfully. It will take that Node, curl the corresponding siteName, and fill the siteData variable with the webpage content.
+
+* `Queue parseQueue`: Once a thread is able to fetch and fill a Node with siteData, this node will then be pushed to the parseQueue. The parse threads will be constantly waiting for Nodes to be put into this queue. When a Node is pushed to the queue, the queue will broadcast, wake up the sleepings threads. One of the sleeping threads will be able to pop successfully. It will take this node, and search/count the siteData for keywords. It will push the results to an `output` vector.
+
+* `Config config("config.txt")`: This instantiates the configuration parameters. It needs to be global so it can be accessed by other functions in `main`.
+
+* `int FILECOUNT = 0`: This variable keeps track of the number of files the program has written. Each time a new outfile is witten, `FILECOUNT` is incremented, so all the output files can have different names. 
+
+* `vector<string> keywords`: This contains a vector of all the keywords parsed from `search.txt`. This needs to be global so it can be accessed by other functions in `main`.
+
+* `vector<string> sites`: This contains a vector of all the sites parsed from `sites.txt`. This needs to be global so it can be accessed by other functions in `main`.
+
+* `vector<string> output`: This is the output vector mentioned above. Each time a thread successfully parses website content, its results, the sitename, keyword, and keyword count are all pushed to this vector. This vector is later used after all the threads have completed, to write the results to an output file. 
+
+* `int keepRunning = 1`: This is a variable that keeps `main`, and all of the threads constantly running. When ^C is called, this variable is set to 0, so all the threads will finished and the program and the threads can exit gracefully. 
+
+* `pthread_t* fetchthreads = new pthread_t[config.NUM_FETCH]`: This initializes and keeps track of all the threads needed for fetching site data. 
+
+* `pthread_t* parsethreads = new pthread_t[config.NUM_PARSE]`: This initializes and keeps track of all the threads needed for parsing the site data.
+
+* `pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER`: This mutex locks the output vector, so no two threads can write/push things to it at the same time.
+
+* `string LOCALTIME`: This variable gets the local time whenever the alarm goes off and stores it. This is used when writing the output file. 
+
+* `ofstream outputFile`: This is the output file stream. This also needs to be global so it can be accessed by multiple functions. The alarm handler and the exit handler. 
+
