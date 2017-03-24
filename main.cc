@@ -32,10 +32,11 @@ vector<string> keywords;
 vector<string> sites;
 vector<string> output;
 int keepRunning = 1;
-pthread_t* parsethreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_PARSE);
-pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
+pthread_t* fetchthreads = new pthread_t[config.NUM_FETCH];
+pthread_t* parsethreads = new pthread_t[config.NUM_PARSE];
 pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 string LOCALTIME;
+ofstream outputFile;
 
 // Functions
 void createFetchThreads();
@@ -61,15 +62,18 @@ int main() {
 	// Set signals
 	//signal(SIGALRM, alarmHandler);
 	signal(SIGINT, exitHandler);
-	signal(SIGHUP, exitHandler);
 
 	// create Threads
 	createFetchThreads();
 	createParseThreads();
 
 	// set off initial alarm for first run
+<<<<<<< HEAD
 	//alarm(10);
 	alarmHandler(0);
+=======
+	alarm(1);
+>>>>>>> b341bf4b22854728014e7cbceb9e169ea733a1fe
 
 	// Get local time
 	time_t theTime = time(NULL);
@@ -90,7 +94,7 @@ void alarmHandler( int sig) {
 
 	// Make output file
 	FILECOUNT++;
-	ofstream outputFile;
+	//ofstream outputFile;
 	string filename = to_string(FILECOUNT) + ".csv";
 	outputFile.open (filename);
 
@@ -112,7 +116,7 @@ void alarmHandler( int sig) {
 
 	// Reset alarm, get local time
 	signal(SIGALRM, alarmHandler);
-	alarm(10);
+	alarm(config.PERIOD_FETCH);
 	time_t theTime = time(NULL);
 	struct tm* timeinfo = localtime(&theTime);
 	LOCALTIME = asctime(timeinfo); 
@@ -123,12 +127,11 @@ void alarmHandler( int sig) {
 void createFetchThreads() {
 
 	// Create threads
-	pthread_t* fetchthreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_FETCH);
 	int rc;
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
 		
-		rc = pthread_create(&fetchthreads[i], NULL, fetchThreadHandler, (void*) i);
+		rc = pthread_create(&fetchthreads[i], NULL, fetchThreadHandler, &i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
         	exit(1);
@@ -152,21 +155,22 @@ void* fetchThreadHandler( void* threadID ) {
 		newNode.siteData = curl.getSite(c);
 
 		// push into parseQueue
-		parseQueue.push(newNode);
+		if (newNode.siteData != "" ) {
+			parseQueue.push(newNode);
+		}
 
 	}
-
+	pthread_exit(NULL);
 }
 
 void createParseThreads() {
 
 	// Create threads
-	pthread_t* parsethreads = (pthread_t*) malloc( sizeof(pthread_t) * config.NUM_PARSE);
 	int rc;
 
 	for( int i = 0; i < config.NUM_PARSE; i++) {
 		
-		rc = pthread_create(&parsethreads[i], NULL, parseThreadHandler, (void*) i);
+		rc = pthread_create(&parsethreads[i], NULL, parseThreadHandler, &i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
         	exit(1);
@@ -211,6 +215,7 @@ void* parseThreadHandler( void* threadID ) {
 		}		
 
 	}
+	pthread_exit(NULL);
 
 }
 
@@ -218,18 +223,24 @@ void exitHandler( int sig ) {
 
 	// set keepRunning to false so threads will exit loop
 	keepRunning = 0;
-
+	
+	try {
+		outputFile.close();
+	}
+	catch (int e){
+		// no file to close
+	}
 	// wait for all threads to finish
-	for ( int tid=0; tid<config.NUM_PARSE; tid++) {
-		pthread_join(parsethreads[tid], NULL);
-	}
-	for ( int tid=0; tid<config.NUM_FETCH; tid++) {
-		pthread_join(fetchthreads[tid], NULL);
-	}
-
+	//for ( int tid=0; tid<config.NUM_PARSE; tid++) {
+	//	pthread_join(parsethreads[tid], NULL);
+	//}
+	//for ( int tid=0; tid<config.NUM_FETCH; tid++) {
+	//	pthread_join(fetchthreads[tid], NULL);
+	//}
+	//pthread_exit();
 	// deallocate memory for threads
-	delete [] parsethreads;
-	delete [] fetchthreads;
+	//delete [] parsethreads;
+	//delete [] fetchthreads;
 
 
 }

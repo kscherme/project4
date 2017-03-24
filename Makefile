@@ -1,5 +1,5 @@
-CXX=		g++
-CXXFLAGS=	-g -Wall -lcurl -std=gnu++11
+CXX=		/afs/nd.edu/user14/csesoft/new/bin/g++
+CXXFLAGS=	-g -Wall -lcurl -std=gnu++11 -static-libstdc++
 
 all: site-tester
 
