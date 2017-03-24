@@ -56,10 +56,10 @@ int main() {
 	sites = psites.getData();
 
 	// Fill fetch queue for the first run
-	fetchQueue.fill(sites);
+	//fetchQueue.fill(sites);
 
 	// Set signals
-	signal(SIGALRM, alarmHandler);
+	//signal(SIGALRM, alarmHandler);
 	signal(SIGINT, exitHandler);
 	signal(SIGHUP, exitHandler);
 
@@ -68,7 +68,8 @@ int main() {
 	createParseThreads();
 
 	// set off initial alarm for first run
-	alarm(10);
+	//alarm(10);
+	alarmHandler(0);
 
 	// Get local time
 	time_t theTime = time(NULL);
