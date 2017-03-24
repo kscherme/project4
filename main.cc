@@ -62,14 +62,13 @@ int main() {
 	// Set signals
 	signal(SIGALRM, alarmHandler);
 	signal(SIGINT, exitHandler);
-	signal(SIGHUP, exitHandler);
 
 	// create Threads
 	createFetchThreads();
 	createParseThreads();
 
 	// set off initial alarm for first run
-	alarm(10);
+	alarm(1);
 
 	// Get local time
 	time_t theTime = time(NULL);
@@ -112,7 +111,7 @@ void alarmHandler( int sig) {
 
 	// Reset alarm, get local time
 	signal(SIGALRM, alarmHandler);
-	alarm(10);
+	alarm(config.PERIOD_FETCH);
 	time_t theTime = time(NULL);
 	struct tm* timeinfo = localtime(&theTime);
 	LOCALTIME = asctime(timeinfo); 
@@ -127,7 +126,7 @@ void createFetchThreads() {
 
 	for( int i = 0; i < config.NUM_FETCH; i++) {
 		
-		rc = pthread_create(&fetchthreads[i], NULL, fetchThreadHandler, (void*) i);
+		rc = pthread_create(&fetchthreads[i], NULL, fetchThreadHandler, &i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
         	exit(1);
@@ -154,7 +153,7 @@ void* fetchThreadHandler( void* threadID ) {
 		parseQueue.push(newNode);
 
 	}
-
+	pthread_exit(NULL);
 }
 
 void createParseThreads() {
@@ -164,7 +163,7 @@ void createParseThreads() {
 
 	for( int i = 0; i < config.NUM_PARSE; i++) {
 		
-		rc = pthread_create(&parsethreads[i], NULL, parseThreadHandler, (void*) i);
+		rc = pthread_create(&parsethreads[i], NULL, parseThreadHandler, &i);
 		if (rc) {
         	cout << "Error: unable to create thread: " << rc << endl;
         	exit(1);
@@ -209,6 +208,7 @@ void* parseThreadHandler( void* threadID ) {
 		}		
 
 	}
+	pthread_exit(NULL);
 
 }
 
@@ -224,16 +224,16 @@ void exitHandler( int sig ) {
 		// no file to close
 	}
 	// wait for all threads to finish
-	for ( int tid=0; tid<config.NUM_PARSE; tid++) {
-		pthread_join(parsethreads[tid], NULL);
-	}
-	for ( int tid=0; tid<config.NUM_FETCH; tid++) {
-		pthread_join(fetchthreads[tid], NULL);
-	}
-
+	//for ( int tid=0; tid<config.NUM_PARSE; tid++) {
+	//	pthread_join(parsethreads[tid], NULL);
+	//}
+	//for ( int tid=0; tid<config.NUM_FETCH; tid++) {
+	//	pthread_join(fetchthreads[tid], NULL);
+	//}
+	//pthread_exit();
 	// deallocate memory for threads
-	delete [] parsethreads;
-	delete [] fetchthreads;
+	//delete [] parsethreads;
+	//delete [] fetchthreads;
 
 
 }
