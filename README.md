@@ -26,6 +26,7 @@ The curl class models the `getinmemory` code given in the Project 4 documentatio
 
 The Queue Class
 ---------------
+The queue class is one of the most parts of our program. It is a wrapper class that ensures the underlying `list<Node>` variable is threadsafe. It contains the normal `fill`, `pop`, `empty`, and `push` functions, but it also contains a `pthread_mutex_t` called `queue_mutex` and a `pthread_cond_t` called `queue_cond`. Anytime a thread wants to fill, pop, or push to the list variable, the mutex locks the operation, executes it, then unlockes the mutex. This ensures that no two threads can pop or push to the list at the same. In the `pop` function, if a thread tries to pop and the list is empty, it throws a `pthread_cond_wait( &queue_cond, &queue_mutex )`. This means the thread will wait for a signal to `queue_cond` to start back up, and temporarily release the mutex while it waits. This signal comes in the form of a `pthread_cond_broadcast( &queue_cond )`. We perform a broadcast anytime after a new item is pushed to the `list`, this happens in the `fill` and `push` functions. So anytime one of these functions is called, the new Node will be pushed to the list, the function will broadcast and wake up any sleeping threads, which are waiting for Nodes to be pushed to the list.
 
 main.cc
 -------
