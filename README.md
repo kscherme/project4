@@ -18,6 +18,7 @@ We created a configuration class to handle the parsing of the configuration file
 
 The Parse Class
 ---------------
+The parsing class is responsible for parsing the `SEARCH_FILE` and `SITE_FILE` parameters. The Constructor is passed a string with the filename and the class then opens the file (or throws an error if it doesn't exist) and reads the file line by line, putting eah line into a private `vector<string>` variable called `data`. The `data` variable will then contain either a vector of keywords or a vector a sites to search.
 
 The CurlSite Class
 ------------------
