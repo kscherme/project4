@@ -22,6 +22,7 @@ The parsing class is responsible for parsing the `SEARCH_FILE` and `SITE_FILE` p
 
 The CurlSite Class
 ------------------
+The curl class models the `getinmemory` code given in the Project 4 documentation. It uses libcurl to fetch a webpage and then store the contents in memory. We modfied the getinmemory code so it returns a `string` with the webpage contents. We will later search this string for the keywords. We also modified the getinmemory code to include `CURLOPT_TIMEOUT` and `CURLOPT_NOSIGNAL` options. These two options are very important for handling the case when sites have errors. We set this option to 15 seconds. So if a request takes longer than 15 seconds, libcurl will timeout (won't get the webpage content for that site). But the program won't stop running, it will proceed curling the rest of the sites, and attempt to curl the site that timed out the next time the alarm goes off. 
 
 The Queue Class
 ---------------
